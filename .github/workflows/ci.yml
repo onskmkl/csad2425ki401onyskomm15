@@ -24,11 +24,12 @@ jobs:
         with:
           python-version: '3.x'
 
-      # Install Python dependencies
+      # Install Python dependencies (with fallback if requirements.txt is missing)
       - name: Install dependencies
         run: |
           python -m pip install --upgrade pip
-          pip install -r requirements.txt
+          if [ -f requirements.txt ]; then pip install -r requirements.txt; fi
+          pip install pytest
           
       # Run Python tests
       - name: Run tests
