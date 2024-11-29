@@ -1,0 +1,72 @@
+name: CI Workflow
+
+on:
+  push:
+    branches:
+      - develop
+      - feature/develop/task2
+  pull_request:
+    branches:
+      - develop
+
+jobs:
+  build:
+    runs-on: ubuntu-latest
+
+    steps:
+      # Checkout the repository
+      - name: Checkout code
+        uses: actions/checkout@v3
+
+      # Set up Python environment
+      - name: Set up Python 3.x
+        uses: actions/setup-python@v4
+        with:
+          python-version: '3.x'
+
+      # Install Python dependencies
+      - name: Install dependencies
+        run: |
+          python -m pip install --upgrade pip
+          pip install -r requirements.txt
+          
+      # Run Python tests
+      - name: Run tests
+        run: |
+          python -m unittest discover -s . -p '*_test.py' > test-reports/results.txt || true
+          
+      # Install Arduino CLI
+      - name: Set up Arduino CLI
+        run: |
+          wget https://downloads.arduino.cc/arduino-cli/arduino-cli_latest_Linux_64bit.tar.gz
+          tar -xvf arduino-cli_latest_Linux_64bit.tar.gz
+          sudo mv arduino-cli /usr/local/bin/
+          arduino-cli config init
+
+      - name: Add ESP8266 package URL
+        run: |
+          arduino-cli config set board_manager.additional_urls http://arduino.esp8266.com/stable/package_esp8266com_index.json
+
+      - name: Install ESP8266 core
+        run: |
+          arduino-cli core update-index
+          arduino-cli core install esp8266:esp8266  # Install the ESP8266 core
+
+      - name: Compile Arduino Sketch for NodeMCU
+        run: |
+          mkdir -p build  # Ensure the build directory exists
+          arduino-cli compile --fqbn esp8266:esp8266:nodemcuv2 --output-dir build HWPart/TicTacToe/TicTacToe.ino
+
+      # Collect binaries as artifacts
+      - name: Upload binaries
+        uses: actions/upload-artifact@v3
+        with:
+          name: compiled-files
+          path: build/*.bin 
+
+      # Collect test results as artifacts
+      - name: Upload test reports
+        uses: actions/upload-artifact@v3
+        with:
+          name: test-reports
+          path: test-reports/results.txt
