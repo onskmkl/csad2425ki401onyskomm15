@@ -35,7 +35,7 @@ jobs:
     - name: Upload sketch (optional, requires connected hardware)
       if: github.event_name == 'push'
       run: |
-        arduino-cli upload -p /dev/ttyUSB0 --fqbn arduino:avr:uno Server/TicTacToe.ino
+        arduino-cli upload -p /dev/ttyUSB0 --fqbn arduino:avr:uno Server/TicTacToe/TicTacToe.ino
 
     - name: Run unit tests
       run: |
