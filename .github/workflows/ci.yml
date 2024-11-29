@@ -13,62 +13,35 @@ jobs:
     runs-on: ubuntu-latest
 
     steps:
-      # Checkout the repository
-      - name: Checkout code
-        uses: actions/checkout@v3
+    - name: Checkout repository
+      uses: actions/checkout@v3
 
-      # Set up Python environment
-      - name: Set up Python 3.x
-        uses: actions/setup-python@v4
-        with:
-          python-version: '3.x'
+    - name: Set up Arduino CLI
+      uses: arduino/setup-arduino-cli@v1
+      with:
+        version: latest
 
-      # Install Python dependencies
-      - name: Install pytest
-        run: |
-          python -m pip install --upgrade pip
-          pip install pytest
+    - name: Install dependencies
+      run: |
+        arduino-cli core update-index
+        arduino-cli core install arduino:avr
 
-      # Run Python tests
-      - name: Run tests
-        run: |
-          if [ -d "serverSide/tests" ]; then
-            python -m pytest --junitxml=test-reports/results.xml serverSide/tests/
-          else
-            echo "No tests found, skipping."
+    - name: Compile sketch
+      run: |
+        arduino-cli compile --fqbn arduino:avr:uno Server/TicTacToe.ino
 
-      # Install Arduino CLI
-      - name: Set up Arduino CLI
-        run: |
-          wget https://downloads.arduino.cc/arduino-cli/arduino-cli_latest_Linux_64bit.tar.gz
-          tar -xvf arduino-cli_latest_Linux_64bit.tar.gz
-          sudo mv arduino-cli /usr/local/bin/
-          arduino-cli config init
+    - name: Upload sketch (optional, requires connected hardware)
+      if: github.event_name == 'push'
+      run: |
+        arduino-cli upload -p /dev/ttyUSB0 --fqbn arduino:avr:uno Server/TicTacToe.ino
 
-      - name: Add ESP8266 package URL
-        run: |
-          arduino-cli config set board_manager.additional_urls http://arduino.esp8266.com/stable/package_esp8266com_index.json
+    - name: Run unit tests
+      run: |
+        arduino-cli test Server
 
-      - name: Install ESP8266 core
-        run: |
-          arduino-cli core update-index
-          arduino-cli core install esp8266:esp8266
-
-      - name: Compile Arduino Sketch
-        run: |
-          mkdir -p build
-          arduino-cli compile --fqbn esp8266:esp8266:nodemcuv2 --output-dir build Server/TicTacToe.ino
-
-      # Upload binaries as artifacts
-      - name: Upload binaries
-        uses: actions/upload-artifact@v3
-        with:
-          name: compiled-files
-          path: build/*.bin 
-
-      # Upload test results as artifacts
-      - name: Upload test reports
-        uses: actions/upload-artifact@v3
-        with:
-          name: test-reports
-          path: test-reports/results.xml
+    - name: Archive build artifacts
+      if: always()
+      uses: actions/upload-artifact@v3
+      with:
+        name: compiled-sketch
+        path: Server/build
