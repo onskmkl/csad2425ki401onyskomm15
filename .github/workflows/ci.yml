@@ -32,10 +32,10 @@ jobs:
       run: |
         arduino-cli compile --fqbn arduino:avr:uno Server/TicTacToe/TicTacToe.ino
 
-    - name: Upload sketch (optional, requires connected hardware)
+    - name: Emulate upload (CI environment)
       if: github.event_name == 'push'
       run: |
-        arduino-cli upload -p /dev/ttyUSB0 --fqbn arduino:avr:uno Server/TicTacToe/TicTacToe.ino
+        echo "Skipping upload in CI environment. No physical hardware connected."
 
     - name: Run unit tests
       run: |
