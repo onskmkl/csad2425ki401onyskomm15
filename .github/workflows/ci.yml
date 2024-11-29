@@ -1,0 +1,50 @@
+name: CI Workflow
+
+on:
+  push:
+    branches:
+      - 'feature/develop/task2'
+  pull_request:
+    branches:
+      - 'feature/develop/task2'
+
+jobs:
+  build:
+    runs-on: ubuntu-latest
+
+    steps:
+    - name: Checkout repository
+      uses: actions/checkout@v3
+
+    - name: Set up Arduino CLI
+      run: |
+        wget https://downloads.arduino.cc/arduino-cli/arduino-cli_latest_Linux_64bit.tar.gz
+        tar -xvf arduino-cli_latest_Linux_64bit.tar.gz
+        sudo mv arduino-cli /usr/local/bin/
+        arduino-cli config init
+
+    - name: Install dependencies
+      run: |
+        arduino-cli core update-index
+        arduino-cli core install arduino:avr
+
+    - name: Compile sketch
+      run: |
+        mkdir -p build-output
+        arduino-cli compile --fqbn arduino:avr:uno --output-dir build-output Server/TicTacToe/TicTacToe.ino
+
+    - name: Emulate upload (CI environment)
+      if: github.event_name == 'push'
+      run: |
+        echo "Skipping upload in CI environment. No physical hardware connected."
+
+    - name: Validate configuration (unit test placeholder)
+      run: |
+        echo "Running placeholder unit tests. Arduino CLI does not natively support 'test'."
+
+    - name: Archive build artifacts
+      if: always()
+      uses: actions/upload-artifact@v3
+      with:
+        name: compiled-sketch
+        path: build-output
