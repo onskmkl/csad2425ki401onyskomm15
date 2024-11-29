@@ -30,7 +30,7 @@ jobs:
 
     - name: Compile sketch
       run: |
-        arduino-cli compile --fqbn arduino:avr:uno Server/TicTacToe.ino
+        arduino-cli compile --fqbn arduino:avr:uno Server/TicTacToe/TicTacToe.ino
 
     - name: Upload sketch (optional, requires connected hardware)
       if: github.event_name == 'push'
