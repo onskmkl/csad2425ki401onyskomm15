@@ -30,7 +30,8 @@ jobs:
 
     - name: Compile sketch
       run: |
-        arduino-cli compile --fqbn arduino:avr:uno Server/TicTacToe/TicTacToe.ino
+        mkdir -p build-output
+        arduino-cli compile --fqbn arduino:avr:uno --output-dir build-output Server/TicTacToe/TicTacToe.ino
 
     - name: Emulate upload (CI environment)
       if: github.event_name == 'push'
@@ -46,4 +47,4 @@ jobs:
       uses: actions/upload-artifact@v3
       with:
         name: compiled-sketch
-        path: Server/build
+        path: build-output
