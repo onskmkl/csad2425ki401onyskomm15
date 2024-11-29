@@ -3,11 +3,10 @@ name: CI Workflow
 on:
   push:
     branches:
-      - develop
-      - 'feature/**'
+      - 'feature/develop/task2'
   pull_request:
     branches:
-      - develop
+      - 'feature/develop/task2'
 
 jobs:
   build:
@@ -24,15 +23,11 @@ jobs:
         with:
           python-version: '3.x'
 
-      # Install Python dependencies if requirements.txt exists
-      - name: Check for requirements.txt
+      # Install Python dependencies
+      - name: Install pytest
         run: |
-          if [ -f "requirements.txt" ]; then
-            python -m pip install --upgrade pip
-            pip install -r requirements.txt
-            pip install pytest
-          else
-            echo "requirements.txt not found, skipping dependency installation."
+          python -m pip install --upgrade pip
+          pip install pytest
 
       # Run Python tests
       - name: Run tests
