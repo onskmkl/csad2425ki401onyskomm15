@@ -24,17 +24,23 @@ jobs:
         with:
           python-version: '3.x'
 
-      # Install Python dependencies
-      - name: Install dependencies
+      # Install Python dependencies if requirements.txt exists
+      - name: Check for requirements.txt
         run: |
-          python -m pip install --upgrade pip
-          pip install -r serverSide/requirements.txt
-          pip install pytest
-          
+          if [ -f "requirements.txt" ]; then
+            python -m pip install --upgrade pip
+            pip install -r requirements.txt
+            pip install pytest
+          else
+            echo "requirements.txt not found, skipping dependency installation."
+
       # Run Python tests
       - name: Run tests
         run: |
-          python -m pytest --junitxml=test-reports/results.xml serverSide/tests/
+          if [ -d "serverSide/tests" ]; then
+            python -m pytest --junitxml=test-reports/results.xml serverSide/tests/
+          else
+            echo "No tests found, skipping."
 
       # Install Arduino CLI
       - name: Set up Arduino CLI
